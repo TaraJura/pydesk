@@ -29,9 +29,19 @@ class HelloWorldWindow(Gtk.Window):
             self.vbox.pack_start(progress_bar, True, True, 0)
             self.core_progress_bars.append(progress_bar)
 
+        self.ram_label = Gtk.Label()
+        self.vbox.pack_start(self.ram_label, True, True, 0)
+
         self.button = Gtk.Button(label="Start Stress Test")
         self.button.connect("clicked", self.on_button_clicked)
-        self.vbox.pack_start(self.button, True, True, 0)
+
+        self.button_box = Gtk.Box()
+        self.button_box.pack_start(self.button, False, False, 0)
+
+        alignment = Gtk.Alignment(xalign=0.5, yalign=0.5, xscale=0, yscale=0)
+        alignment.add(self.button_box)
+
+        self.vbox.pack_start(alignment, False, False, 0)
 
         self.update_cpu_usage()
 
@@ -45,7 +55,14 @@ class HelloWorldWindow(Gtk.Window):
             while True:
                 usages = psutil.cpu_percent(percpu=True)
                 for i, usage in enumerate(usages):
+                    color = "green" if usage < 50 else "red"
+                    text = f'<span foreground="{color}">Core {i + 1} usage: {usage}%</span>'
+                    GLib.idle_add(self.core_labels[i].set_markup, text)
                     GLib.idle_add(self.core_progress_bars[i].set_fraction, usage / 100)
+
+                # update RAM usage
+                ram = psutil.virtual_memory()
+                GLib.idle_add(self.ram_label.set_text, f'RAM: {ram.percent}% of {round(ram.total / (1024.0 ** 3))}GB')
                 time.sleep(1)
 
         threading.Thread(target=cpu_monitor).start()
