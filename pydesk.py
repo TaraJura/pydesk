@@ -15,6 +15,26 @@ class HelloWorldWindow(Gtk.Window):
         self.vbox = Gtk.VBox(spacing=10)
         self.add(self.vbox)
 
+        cpu_section_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        cpu_section_box.set_margin_start(32)
+        cpu_section_box.set_margin_end(32)
+        cpu_section_box.set_margin_top(32)
+        cpu_section_box.set_margin_bottom(32)
+        self.vbox.pack_start(cpu_section_box, True, True, 0)
+
+        ram_section_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        ram_section_box.set_margin_start(32)
+        ram_section_box.set_margin_end(32)
+        ram_section_box.set_margin_top(32)
+        ram_section_box.set_margin_bottom(32)
+        self.vbox.pack_start(ram_section_box, True, True, 0)
+
+        self.cpu_label = Gtk.Label(label="CPU")
+        cpu_section_box.pack_start(self.cpu_label, False, False, 0)
+
+        self.ram_label = Gtk.Label(label="RAM")
+        ram_section_box.pack_start(self.ram_label, False, False, 0)
+
         self.cpu_cores = psutil.cpu_count()
 
         self.core_labels = []
@@ -22,32 +42,31 @@ class HelloWorldWindow(Gtk.Window):
         for i in range(self.cpu_cores):
             label = Gtk.Label()
             label.set_text("Core " + str(i+1) + " usage:")
-            self.vbox.pack_start(label, True, True, 0)
+            cpu_section_box.pack_start(label, False, False, 0)
             self.core_labels.append(label)
 
             progress_bar = Gtk.ProgressBar()
-            self.vbox.pack_start(progress_bar, True, True, 0)
+            cpu_section_box.pack_start(progress_bar, False, False, 0)
             self.core_progress_bars.append(progress_bar)
 
-        self.ram_label = Gtk.Label()
-        self.vbox.pack_start(self.ram_label, True, True, 0)
+        self.ram_info = Gtk.Label()
+        ram_section_box.pack_start(self.ram_info, False, False, 0)
 
-        self.button = Gtk.Button(label="Start Stress Test")
-        self.button.connect("clicked", self.on_button_clicked)
+        button_alignment = Gtk.Alignment(xalign=0.5, yalign=0.5, xscale=0, yscale=0)
+        self.vbox.pack_end(button_alignment, False, False, 0)
 
         self.button_box = Gtk.Box()
+        button_alignment.add(self.button_box)
+
+        self.button = Gtk.Button(label="Start Stress Test (10s)")
+        self.button.connect("clicked", self.on_button_clicked)
         self.button_box.pack_start(self.button, False, False, 0)
-
-        alignment = Gtk.Alignment(xalign=0.5, yalign=0.5, xscale=0, yscale=0)
-        alignment.add(self.button_box)
-
-        self.vbox.pack_start(alignment, False, False, 0)
 
         self.update_cpu_usage()
 
     def on_button_clicked(self, widget):
-        # This command will create a stress test on one CPU core for 60 seconds
-        stress_command = ["stress", "--cpu", "1", "--timeout", "60"]
+        # This command will create a stress test on one CPU core for 10 seconds
+        stress_command = ["stress", "--cpu", "1", "--timeout", "10"]
         subprocess.Popen(stress_command)
 
     def update_cpu_usage(self):
@@ -62,7 +81,7 @@ class HelloWorldWindow(Gtk.Window):
 
                 # update RAM usage
                 ram = psutil.virtual_memory()
-                GLib.idle_add(self.ram_label.set_text, f'RAM: {ram.percent}% of {round(ram.total / (1024.0 ** 3))}GB')
+                GLib.idle_add(self.ram_info.set_text, f'RAM: {ram.percent}% of {round(ram.total / (1024.0 ** 3))}GB')
                 time.sleep(1)
 
         threading.Thread(target=cpu_monitor).start()
