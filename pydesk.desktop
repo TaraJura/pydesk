@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Name=Hello World
+Comment=A Hello, World! application
+Exec=python3 /home/novakj/pydesk/pydesk.py
+Icon=utilities-terminal
+Terminal=false
+Type=Application
+Categories=Application;
